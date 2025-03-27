@@ -7,6 +7,7 @@ class Alien(Sprite):
         """Инициализация пришельца и его начальной позиции"""
         super().__init__()
         self.screen = ai_game.screen
+        self.settings = ai_game.settings
 
         # Загрузка изображения пришелца и назначение атрибута rect
         self.image = pygame.image.load('images/alien_ship_big.bmp')
@@ -18,3 +19,13 @@ class Alien(Sprite):
 
         # Сохранение точной горизонтальной позции пришельца
         self.x = float(self.rect.x)
+
+    def check_edge(self):
+        """True если пришелец находится у края экрана"""
+        screen_rect = self.screen.get_rect()
+        return (self.rect.right >= screen_rect.right) or (self.rect.left <= 0)
+
+    def update(self):
+        """перемещает пришельца влево или вправо"""
+        self.x += (self.settings.alien_speed * self.settings.fleet_direction)
+        self.rect.x = self.x
