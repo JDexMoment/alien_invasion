@@ -3,7 +3,7 @@ from pygame.sprite import Sprite
 
 class Bullet(Sprite):
     """Класс для управления снарядами, выпущенными кораблем"""
-    def __init__(self, ai_game):
+    def __init__(self, ai_game, is_left_gun = True):
         """Создает объект снарядов в текущей позиции корабля"""
         super().__init__()
         self.screen = ai_game.screen
@@ -12,7 +12,12 @@ class Bullet(Sprite):
 
         # Создание снаряда в позиции 0, 0 и назначение правильной позиции
         self.rect = pygame.Rect(0, 0, self.settings.bullet_width, self.settings.bullet_height)
-        self.rect.midtop = ai_game.ship.rect.midtop
+        if is_left_gun:
+            self.rect.midleft = ai_game.ship.rect.midleft
+            self.rect.x += self.settings.bullets_offset
+        else:
+            self.rect.midright = ai_game.ship.rect.midright
+            self.rect.x -= self.settings.bullets_offset
 
         # Позиция у снаряда хранится в вещественном формате
         self.y = float(self.rect.y)
