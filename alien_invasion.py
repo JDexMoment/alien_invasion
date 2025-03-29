@@ -40,6 +40,14 @@ class AlienInvasion:
         # Создание кнопки Play
         self.play_button = Button(self, "Play")
 
+        # Создание кнопок сложности
+        self.easy_button = Button(self, msg="Easy", y_offset=200, x_offset=-250, color=(100, 100, 100))
+        self.medium_button = Button(self, msg="Medium", y_offset=200, x_offset=0, color=(100, 100, 100))
+        self.hard_button = Button(self, msg="Hard", y_offset=200, x_offset=250, color=(100, 100, 100))
+
+        # Текущая сложность
+        self.difficulty = None
+
     def run_game(self):
         """Запускает цикл игры"""
         while True:
@@ -62,6 +70,7 @@ class AlienInvasion:
             # Запускаем игру наводясь на кнопку Play
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_pos = pygame.mouse.get_pos()
+                self._check_complexity(mouse_pos)
                 self._check_play_button(mouse_pos)
 
             # Перемещаем корабль
@@ -86,9 +95,6 @@ class AlienInvasion:
             self.start_game()
         elif event.key == pygame.K_q:
             sys.exit()
-
-        key_name = pygame.key.name(event.key)
-        # print(f'нажата клавиша: {key_name}')
 
     def _check_key_up_events(self, event):
         """Реагирует на отпускание клавиш"""
@@ -125,9 +131,12 @@ class AlienInvasion:
         score_text = font.render(f"Убито: {self.stats.aliens_killed}", True, (255, 255, 255))
         self.screen.blit(score_text, (10, 10))
 
-        # Кнопка Play отображается в том случае, если игра неактивна
+        # Кнопка Play и Compexity отображаются в том случае, если игра неактивна
         if not self.game_active:
             self.play_button.draw_button()
+            self.easy_button.draw_button()
+            self.medium_button.draw_button()
+            self.hard_button.draw_button()
 
         # Отображение последнего прорисованного экрана
         pygame.display.flip()
@@ -154,6 +163,7 @@ class AlienInvasion:
             # Уничтожение существующих снарядов и создание нового флота
             self.bullets.empty()
             self._create_fleet()
+            self.settings.increase_speed()
 
     def _create_fleet(self):
         """Создает флот пришельцев"""
@@ -237,8 +247,37 @@ class AlienInvasion:
     def _check_play_button(self, mouse_pos):
         """Проверяет условия для запуска игры"""
         button_clicked = self.play_button.rect.collidepoint(mouse_pos)
-        if button_clicked and not self.game_active:
+        if button_clicked and not self.game_active and self.difficulty:
             self.start_game()
+
+    def _check_complexity(self, mouse_pos):
+        """Проверяет условия для выбора сложности"""
+        if not self.game_active:
+            if self.easy_button.rect.collidepoint(mouse_pos):
+                self.easy_button.button_color = (0, 255, 0)
+                self.medium_button.button_color = (100, 100, 100)
+                self.hard_button.button_color = (100, 100, 100)
+                self._set_difficulty("easy")
+            elif self.medium_button.rect.collidepoint(mouse_pos):
+                self.easy_button.button_color = (100, 100, 100)
+                self.medium_button.button_color = (155, 155, 0)
+                self.hard_button.button_color = (100, 100, 100)
+                self._set_difficulty("medium")
+            elif self.hard_button.rect.collidepoint(mouse_pos):
+                self.easy_button.button_color = (100, 100, 100)
+                self.medium_button.button_color = (100, 100, 100)
+                self.hard_button.button_color = (255, 0, 0)
+                self._set_difficulty("hard")
+
+    def _set_difficulty(self, difficulty):
+        """Устанавливает уровень сложности"""
+        self.difficulty = difficulty
+        if difficulty == "easy":
+            self.settings.speedup_scale = 1.0
+        if difficulty == "medium":
+            self.settings.spedup_scale = 1.05
+        if difficulty == "hard":
+            self.settings.speedup_scale = 1.1
 
     def start_game(self):
         """Начинает игру"""
@@ -256,6 +295,9 @@ class AlienInvasion:
 
         # Скрытие курсора
         pygame.mouse.set_visible(False)
+
+        # Возвращение к исходным настройкам скорости
+        self.settings.initialize_dynamic_settings()
 
 
 if __name__ == '__main__':
