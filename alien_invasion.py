@@ -3,6 +3,7 @@ import sys
 import pygame
 from time import sleep
 
+import settings
 from settings import Settings
 from ship import Ship
 from bullet import Bullet
@@ -126,10 +127,8 @@ class AlienInvasion:
         self.ship.blitme()
         self.aliens.draw(self.screen)
 
-        # Отображение счета
-        font = pygame.font.SysFont('Arial', 40)
-        score_text = font.render(f"Убито: {self.stats.aliens_killed}", True, (255, 255, 255))
-        self.screen.blit(score_text, (10, 10))
+        # Вывод информации на экран
+        self._show_stats()
 
         # Кнопка Play и Compexity отображаются в том случае, если игра неактивна
         if not self.game_active:
@@ -140,6 +139,17 @@ class AlienInvasion:
 
         # Отображение последнего прорисованного экрана
         pygame.display.flip()
+
+    def _show_stats(self):
+        """Функция для отображения всей информации на экране"""
+        # Отображение счета
+        self.stats.show_score()
+        # Отображение оставшихся кораблей
+        self.stats.show_ships_left()
+        # Отображение лучшего счета
+        self.stats.show_high_score(self.difficulty)
+        # Отображение уровня
+        self.stats.show_level()
 
     def _update_bullets(self):
         """Удаление снарядов, вышеших за край экрана"""
@@ -158,12 +168,16 @@ class AlienInvasion:
         # Увеличение счетчика попаданий и вывода на экран
         if collisions:
             aliens_killed = sum(len(aliens) for aliens in collisions.values())
-            self.stats.aliens_killed += aliens_killed
+            self.stats.score += aliens_killed * self.stats.fleet_round
+            # Проверяем рекорд
+            self.stats.check_high_score(self.difficulty)
         if not self.aliens:
             # Уничтожение существующих снарядов и создание нового флота
             self.bullets.empty()
             self._create_fleet()
+            self.stats.fleet_round += 1
             self.settings.increase_speed()
+            self.ship.center_ship()
 
     def _create_fleet(self):
         """Создает флот пришельцев"""
